@@ -44,8 +44,8 @@ require(path.join(__dirname, '../src/FileCabinet/SuiteScripts/saved_search_tools
 
   const run = JSON.parse((await tools.savedSearchRunWithOverrides({
     searchId: '12',
-    additionalFilters: ['trandate', 'within', 'lastmonth'],
-    additionalColumns: [{ name: 'memo', label: 'Memo' }],
+    additionalFilters: JSON.stringify(['trandate', 'within', 'lastmonth']),
+    additionalColumns: JSON.stringify([{ name: 'memo', label: 'Memo' }]),
   })).result);
   assert.deepStrictEqual(run.overridesApplied, ['additionalFilters', 'additionalColumns']);
   assert.deepStrictEqual(run.filterExpressionUsed, [[['mainline', 'is', 'T']], 'AND', ['trandate', 'within', 'lastmonth']]);
@@ -56,11 +56,14 @@ require(path.join(__dirname, '../src/FileCabinet/SuiteScripts/saved_search_tools
 
   const replaced = JSON.parse((await tools.savedSearchRunWithOverrides({
     searchId: '12',
-    filterExpression: [['type', 'anyof', 'SalesOrd']],
-    columns: [{ name: 'tranid' }],
+    filterExpression: JSON.stringify([['type', 'anyof', 'SalesOrd']]),
+    columns: [{ name: 'tranid' }], // arrays are accepted too
   })).result);
   assert.deepStrictEqual(replaced.filterExpressionUsed, [['type', 'anyof', 'SalesOrd']]);
   assert.deepStrictEqual(replaced.columnsUsed, [{ name: 'tranid' }]);
+
+  const bad = await tools.savedSearchRunWithOverrides({ searchId: '12', additionalFilters: '[not json' });
+  assert.ok(/not valid JSON/.test(bad.error));
 
   JSON.parse(require('fs').readFileSync(path.join(__dirname,
     '../src/FileCabinet/SuiteScripts/saved_search_tools/saved_search_tools_schema.json'), 'utf8'));

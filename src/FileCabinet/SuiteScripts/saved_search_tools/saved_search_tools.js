@@ -28,6 +28,26 @@ define(['N/search'], function (search) {
         return v !== undefined && v !== null && v !== '';
     }
 
+    // Filter and column arguments arrive as JSON strings (the tool schema only allows
+    // string, number and boolean inputs). Arrays are accepted too.
+    function parseArrayArg(value, name) {
+        if (!hasValue(value)) {
+            return null;
+        }
+        let parsed = value;
+        if (typeof value === 'string') {
+            try {
+                parsed = JSON.parse(value);
+            } catch (e) {
+                throw new Error(name + ' is not valid JSON: ' + e.message);
+            }
+        }
+        if (!Array.isArray(parsed)) {
+            throw new Error(name + ' must be a JSON array.');
+        }
+        return parsed.length ? parsed : null;
+    }
+
     function loadSearch(args) {
         if (!args || !hasValue(args.searchId)) {
             throw new Error('searchId is required (internal ID or customsearch script ID).');
@@ -43,7 +63,7 @@ define(['N/search'], function (search) {
         const out = {};
         COLUMN_KEYS.forEach(function (k) {
             const v = c[k];
-            if (hasValue(v) && !(k === 'sort' && v === 'NONE')) {
+            if (hasValue(v) && !(k === 'sort' && v === 'NONE') && !(k === 'function' && v === 'none')) {
                 out[k] = v;
             }
         });
@@ -63,6 +83,23 @@ define(['N/search'], function (search) {
         return search.createColumn(options);
     }
 
+    // search.load() does not return the title, so look it up. Falls back to null.
+    function findTitle(s) {
+        if (s.title) {
+            return s.title;
+        }
+        try {
+            const rows = search.create({
+                type: 'savedsearch',
+                filters: [['internalid', 'anyof', String(s.searchId)]],
+                columns: ['title']
+            }).run().getRange({ start: 0, end: 1 });
+            return rows.length ? rows[0].getValue({ name: 'title' }) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
     function describe(s) {
         let settings = [];
         try {
@@ -73,7 +110,7 @@ define(['N/search'], function (search) {
         return {
             internalId: s.searchId,
             scriptId: s.id,
-            title: s.title,
+            title: findTitle(s),
             type: s.searchType,
             isPublic: s.isPublic,
             filterExpression: s.filterExpression,
@@ -110,23 +147,28 @@ define(['N/search'], function (search) {
                 const s = loadSearch(args);
                 const overrides = [];
 
-                if (hasValue(args.filterExpression)) {
-                    s.filterExpression = args.filterExpression;
+                const filterExpression = parseArrayArg(args.filterExpression, 'filterExpression');
+                const additionalFilters = parseArrayArg(args.additionalFilters, 'additionalFilters');
+                const replaceColumns = parseArrayArg(args.columns, 'columns');
+                const additionalColumns = parseArrayArg(args.additionalColumns, 'additionalColumns');
+
+                if (filterExpression) {
+                    s.filterExpression = filterExpression;
                     overrides.push('filterExpression');
                 }
-                if (hasValue(args.additionalFilters) && args.additionalFilters.length) {
+                if (additionalFilters) {
                     const current = s.filterExpression || [];
                     s.filterExpression = current.length
-                        ? [current, 'AND', args.additionalFilters]
-                        : args.additionalFilters;
+                        ? [current, 'AND', additionalFilters]
+                        : additionalFilters;
                     overrides.push('additionalFilters');
                 }
-                if (hasValue(args.columns) && args.columns.length) {
-                    s.columns = args.columns.map(jsonToColumn);
+                if (replaceColumns) {
+                    s.columns = replaceColumns.map(jsonToColumn);
                     overrides.push('columns');
                 }
-                if (hasValue(args.additionalColumns) && args.additionalColumns.length) {
-                    s.columns = (s.columns || []).concat(args.additionalColumns.map(jsonToColumn));
+                if (additionalColumns) {
+                    s.columns = (s.columns || []).concat(additionalColumns.map(jsonToColumn));
                     overrides.push('additionalColumns');
                 }
 
@@ -152,7 +194,7 @@ define(['N/search'], function (search) {
 
                 return ok({
                     searchId: s.searchId,
-                    title: s.title,
+                    title: findTitle(s),
                     type: s.searchType,
                     overridesApplied: overrides,
                     savedSearchChanged: false,

@@ -28,7 +28,7 @@
     },
     {
       "name": "savedSearchRunWithOverrides",
-      "description": "Runs a saved search with temporary changes to its filters and/or result columns. Use ONLY when the user asks to filter the results further, change the criteria, or add or change columns. To run a saved search as it is, use the native ns_runSavedSearch instead; this tool returns an error if no override is given. Overrides apply to this run only and the saved search itself is never changed. Call savedSearchInspect first to see the existing filters and columns. Use additionalFilters / additionalColumns to add to what the search has, or filterExpression / columns to replace them entirely. Returns up to 1000 rows per call; page with start and limit. The result is a JSON string.",
+      "description": "Runs a saved search with temporary changes to its filters and/or result columns. Use ONLY when the user asks to filter the results further, change the criteria, or add or change columns. To run a saved search as it is, use the native ns_runSavedSearch instead; this tool returns an error if no override is given. Overrides apply to this run only and the saved search itself is never changed. Call savedSearchInspect first to see the existing filters and columns. Filters and columns are passed as JSON strings. Use additionalFilters / additionalColumns to add to what the search has, or filterExpression / columns to replace them entirely. Returns up to 1000 rows per call; page with start and limit. The result is a JSON string.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -41,94 +41,20 @@
             "description": "Search type. Only needed for standalone search types."
           },
           "additionalFilters": {
-            "type": "array",
-            "description": "Filter expression ANDed onto the search's existing criteria, for example [\"trandate\",\"within\",\"lastmonth\"] or [[\"subsidiary\",\"anyof\",\"1\"],\"AND\",[\"mainline\",\"is\",\"T\"]].",
-            "items": {}
+            "type": "string",
+            "description": "JSON string holding a SuiteScript filter expression that is ANDed onto the search's existing criteria. Examples: [\"trandate\",\"within\",\"lastmonth\"] or [[\"subsidiary\",\"anyof\",\"1\"],\"AND\",[\"mainline\",\"is\",\"T\"]]."
           },
           "filterExpression": {
-            "type": "array",
-            "description": "Filter expression that replaces the search's criteria entirely for this run.",
-            "items": {}
+            "type": "string",
+            "description": "JSON string holding a SuiteScript filter expression that replaces the search's criteria entirely for this run. Example: [[\"type\",\"anyof\",\"SalesOrd\"],\"AND\",[\"mainline\",\"is\",\"T\"]]."
           },
           "additionalColumns": {
-            "type": "array",
-            "description": "Columns appended to the search's existing result columns for this run.",
-            "items": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "description": "Field ID, or formulatext / formulanumeric / formulacurrency / formuladate / formulapercent for formula columns."
-                },
-                "join": {
-                  "type": "string",
-                  "description": "Join ID, if the field is on a joined record."
-                },
-                "summary": {
-                  "type": "string",
-                  "description": "GROUP, COUNT, SUM, AVG, MIN or MAX. In a summary search every column needs one."
-                },
-                "formula": {
-                  "type": "string",
-                  "description": "Formula text for formula columns."
-                },
-                "function": {
-                  "type": "string",
-                  "description": "Column function, for example month or round."
-                },
-                "label": {
-                  "type": "string",
-                  "description": "Custom column label."
-                },
-                "sort": {
-                  "type": "string",
-                  "description": "ASC or DESC."
-                }
-              },
-              "required": [
-                "name"
-              ]
-            }
+            "type": "string",
+            "description": "JSON string holding an array of columns appended to the search's existing result columns for this run. Example: [{\"name\":\"memo\",\"label\":\"Memo\"}]. Each column is an object with name (required; a field ID, or formulatext / formulanumeric / formulacurrency / formuladate / formulapercent for formula columns) and optional join, summary (GROUP, COUNT, SUM, AVG, MIN, MAX; needed on every column of a summary search), formula, function, label and sort (ASC or DESC)."
           },
           "columns": {
-            "type": "array",
-            "description": "Columns that replace the search's result columns entirely for this run.",
-            "items": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "description": "Field ID, or formulatext / formulanumeric / formulacurrency / formuladate / formulapercent for formula columns."
-                },
-                "join": {
-                  "type": "string",
-                  "description": "Join ID, if the field is on a joined record."
-                },
-                "summary": {
-                  "type": "string",
-                  "description": "GROUP, COUNT, SUM, AVG, MIN or MAX. In a summary search every column needs one."
-                },
-                "formula": {
-                  "type": "string",
-                  "description": "Formula text for formula columns."
-                },
-                "function": {
-                  "type": "string",
-                  "description": "Column function, for example month or round."
-                },
-                "label": {
-                  "type": "string",
-                  "description": "Custom column label."
-                },
-                "sort": {
-                  "type": "string",
-                  "description": "ASC or DESC."
-                }
-              },
-              "required": [
-                "name"
-              ]
-            }
+            "type": "string",
+            "description": "JSON string holding an array of columns that replaces the search's result columns entirely for this run. Example: [{\"name\":\"tranid\"},{\"name\":\"amount\",\"summary\":\"SUM\"}]. Each column is an object with name (required; a field ID, or formulatext / formulanumeric / formulacurrency / formuladate / formulapercent for formula columns) and optional join, summary (GROUP, COUNT, SUM, AVG, MIN, MAX; needed on every column of a summary search), formula, function, label and sort (ASC or DESC)."
           },
           "start": {
             "type": "number",
