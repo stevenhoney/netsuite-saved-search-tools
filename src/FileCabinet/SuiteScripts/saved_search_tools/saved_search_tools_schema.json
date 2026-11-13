@@ -1,0 +1,154 @@
+{
+  "tools": [
+    {
+      "name": "savedSearchInspect",
+      "description": "Shows how a saved search is built without running it: title, record type, public flag, criteria as a SuiteScript filter expression, and result columns (name, join, summary, formula, function, label, sort). Use when the user asks what a saved search's criteria, filters or columns are, and before calling savedSearchRunWithOverrides. To find a search's ID use the native ns_listSavedSearches. The result is a JSON string.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "searchId": {
+            "type": "string",
+            "description": "Internal ID of the saved search, or its script ID starting with customsearch."
+          },
+          "type": {
+            "type": "string",
+            "description": "Search type. Only needed for standalone search types (for example DeletedRecord, Role, SavedSearch)."
+          }
+        },
+        "required": [
+          "searchId"
+        ]
+      },
+      "annotations": {
+        "title": "Inspect saved search",
+        "readOnlyHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "savedSearchRunWithOverrides",
+      "description": "Runs a saved search with temporary changes to its filters and/or result columns. Use ONLY when the user asks to filter the results further, change the criteria, or add or change columns. To run a saved search as it is, use the native ns_runSavedSearch instead; this tool returns an error if no override is given. Overrides apply to this run only and the saved search itself is never changed. Call savedSearchInspect first to see the existing filters and columns. Use additionalFilters / additionalColumns to add to what the search has, or filterExpression / columns to replace them entirely. Returns up to 1000 rows per call; page with start and limit. The result is a JSON string.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "searchId": {
+            "type": "string",
+            "description": "Internal ID of the saved search, or its script ID starting with customsearch."
+          },
+          "type": {
+            "type": "string",
+            "description": "Search type. Only needed for standalone search types."
+          },
+          "additionalFilters": {
+            "type": "array",
+            "description": "Filter expression ANDed onto the search's existing criteria, for example [\"trandate\",\"within\",\"lastmonth\"] or [[\"subsidiary\",\"anyof\",\"1\"],\"AND\",[\"mainline\",\"is\",\"T\"]].",
+            "items": {}
+          },
+          "filterExpression": {
+            "type": "array",
+            "description": "Filter expression that replaces the search's criteria entirely for this run.",
+            "items": {}
+          },
+          "additionalColumns": {
+            "type": "array",
+            "description": "Columns appended to the search's existing result columns for this run.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Field ID, or formulatext / formulanumeric / formulacurrency / formuladate / formulapercent for formula columns."
+                },
+                "join": {
+                  "type": "string",
+                  "description": "Join ID, if the field is on a joined record."
+                },
+                "summary": {
+                  "type": "string",
+                  "description": "GROUP, COUNT, SUM, AVG, MIN or MAX. In a summary search every column needs one."
+                },
+                "formula": {
+                  "type": "string",
+                  "description": "Formula text for formula columns."
+                },
+                "function": {
+                  "type": "string",
+                  "description": "Column function, for example month or round."
+                },
+                "label": {
+                  "type": "string",
+                  "description": "Custom column label."
+                },
+                "sort": {
+                  "type": "string",
+                  "description": "ASC or DESC."
+                }
+              },
+              "required": [
+                "name"
+              ]
+            }
+          },
+          "columns": {
+            "type": "array",
+            "description": "Columns that replace the search's result columns entirely for this run.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Field ID, or formulatext / formulanumeric / formulacurrency / formuladate / formulapercent for formula columns."
+                },
+                "join": {
+                  "type": "string",
+                  "description": "Join ID, if the field is on a joined record."
+                },
+                "summary": {
+                  "type": "string",
+                  "description": "GROUP, COUNT, SUM, AVG, MIN or MAX. In a summary search every column needs one."
+                },
+                "formula": {
+                  "type": "string",
+                  "description": "Formula text for formula columns."
+                },
+                "function": {
+                  "type": "string",
+                  "description": "Column function, for example month or round."
+                },
+                "label": {
+                  "type": "string",
+                  "description": "Custom column label."
+                },
+                "sort": {
+                  "type": "string",
+                  "description": "ASC or DESC."
+                }
+              },
+              "required": [
+                "name"
+              ]
+            }
+          },
+          "start": {
+            "type": "number",
+            "description": "Zero-based index of the first row. Default 0."
+          },
+          "limit": {
+            "type": "number",
+            "description": "Rows to return. Default 100, maximum 1000."
+          }
+        },
+        "required": [
+          "searchId"
+        ]
+      },
+      "annotations": {
+        "title": "Run saved search with overrides",
+        "readOnlyHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ]
+}

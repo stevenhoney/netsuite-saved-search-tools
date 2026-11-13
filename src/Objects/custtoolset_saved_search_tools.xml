@@ -1,0 +1,12 @@
+<toolset scriptid="custtoolset_saved_search_tools">
+  <name>Saved Search Companion Tools</name>
+  <scriptfile>[/SuiteScripts/saved_search_tools/saved_search_tools.js]</scriptfile>
+  <rpcschema>[/SuiteScripts/saved_search_tools/saved_search_tools_schema.json]</rpcschema>
+  <exposetoaiconnector>T</exposetoaiconnector>
+  <permissions>
+    <permission>
+      <permkey>LIST_FIND</permkey>
+      <permlevel>VIEW</permlevel>
+    </permission>
+  </permissions>
+</toolset>
