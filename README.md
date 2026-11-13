@@ -157,3 +157,7 @@ The test loads the tool script against a small mock of `N/search`, so it needs n
 ## Uninstall
 
 Delete the toolset under Customization > Scripting > Custom Tools, then remove the `/SuiteScripts/saved_search_tools` folder from the File Cabinet.
+
+## Licence
+
+Released into the public domain under [The Unlicense](LICENSE). Do what you like with it. It comes with no warranty.
